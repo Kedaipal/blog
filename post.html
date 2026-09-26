@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Kedaipal Blog</title>
+  <meta name="description" content="Guides and updates for sellers who run their business on WhatsApp." />
+  <meta name="theme-color" content="#0F172A" />
+  <link rel="icon" href="assets/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;800&family=Red+Hat+Text:ital,wght@0,400;0,500;0,600;1,400&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Main">
+      <a class="nav-logo" href="https://kedaipal.com" aria-label="Kedaipal home">
+        <img src="assets/logo.svg" alt="Kedaipal" />
+      </a>
+      <div class="nav-links">
+        <a href="https://kedaipal.com/#delivery">Delivery</a>
+        <a href="https://kedaipal.com/#payments">Payments</a>
+        <a href="https://kedaipal.com/pricing">Pricing</a>
+        <a href="index.html" aria-current="page">Blog</a>
+      </div>
+      <a class="btn btn-accent" href="https://kedaipal.com">Start free</a>
+    </nav>
+  </header>
+
+  <main id="app">
+    <!-- Filled from Sanity by the script below -->
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <img src="assets/logo-dark.svg" alt="Kedaipal" />
+          <p>The shopkeeper's buddy. Made in SEA.</p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><a href="https://kedaipal.com/#delivery">Delivery</a></li>
+              <li><a href="https://kedaipal.com/#payments">Payments</a></li>
+              <li><a href="https://kedaipal.com/pricing">Pricing</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Contact</h4>
+            <ul>
+              <li><a href="mailto:hello@kedaipal.com">hello@kedaipal.com</a></li>
+              <li><a href="https://kedaipal.com/#faq">FAQ</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">© <span id="year">2026</span> Kedaipal. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/demo-data.js"></script>
+  <script src="js/sanity.js"></script>
+  <script>
+    const { esc, formatDate, readTime, cover, avatar, card, portableText } = Blog;
+    const app = document.getElementById('app');
+    const slug = new URLSearchParams(location.search).get('slug');
+
+    const icons = {
+      back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>',
+      whatsapp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>',
+      facebook: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>',
+      link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+    };
+
+    function notFound(message) {
+      app.innerHTML = `
+        <div class="container">
+          <header class="article-head">
+            <a class="back" href="index.html">${icons.back} All articles</a>
+            <h1>${esc(message)}</h1>
+            <p class="lede">It may have been moved or unpublished.</p>
+          </header>
+        </div>`;
+    }
+
+    function render(post) {
+      document.title = `${post.title} — Kedaipal Blog`;
+      document.querySelector('meta[name="description"]').setAttribute('content', post.excerpt || '');
+      const url = encodeURIComponent(location.href);
+
+      app.innerHTML = `
+        <div class="container">
+          <header class="article-head">
+            <a class="back" href="index.html">${icons.back} All articles</a>
+            <div class="meta">
+              ${post.category ? `<span class="tag">${esc(post.category.title)}</span>` : ''}
+              <span>${formatDate(post.publishedAt)}</span>
+              <span class="dot"></span>
+              <span>${readTime(post.chars)}</span>
+            </div>
+            <h1>${esc(post.title)}</h1>
+            ${post.excerpt ? `<p class="lede">${esc(post.excerpt)}</p>` : ''}
+            <div class="author">
+              ${avatar(post.author)}
+              <div>
+                <strong>${esc(post.author?.name || 'Kedaipal Team')}</strong>
+                ${post.author?.role ? `<span>${esc(post.author.role)}</span>` : ''}
+              </div>
+            </div>
+          </header>
+
+          <div class="article-cover">${cover(post, { wide: true, eager: true })}</div>
+
+          <article class="prose">${portableText(post.body)}</article>
+
+          <div class="share">
+            <div class="meta">${post.category ? `<span class="tag">${esc(post.category.title)}</span>` : ''}</div>
+            <div class="share-links">
+              <a class="icon-btn" href="https://wa.me/?text=${encodeURIComponent(post.title + ' ')}${url}" target="_blank" rel="noopener" aria-label="Share on WhatsApp">${icons.whatsapp}</a>
+              <a class="icon-btn" href="https://www.facebook.com/sharer/sharer.php?u=${url}" target="_blank" rel="noopener" aria-label="Share on Facebook">${icons.facebook}</a>
+              <button class="icon-btn" type="button" id="copy-link" aria-label="Copy link">${icons.link}</button>
+            </div>
+          </div>
+        </div>
+
+        ${post.related.length ? `
+        <section class="related">
+          <div class="container">
+            <div class="section-head">
+              <h2>Keep reading</h2>
+              <a class="btn btn-ghost" href="index.html">View all</a>
+            </div>
+            <div class="grid">${post.related.map(p => card(p, { excerpt: false })).join('')}</div>
+          </div>
+        </section>` : ''}`;
+
+      document.getElementById('copy-link').addEventListener('click', async e => {
+        const btn = e.currentTarget;
+        try { await navigator.clipboard.writeText(location.href); btn.setAttribute('aria-label', 'Link copied'); } catch {}
+      });
+    }
+
+    if (!slug) notFound('Article not found');
+    else Blog.getPost(slug)
+      .then(post => (post ? render(post) : notFound('Article not found')))
+      .catch(err => { console.error(err); notFound("This article couldn't be loaded"); });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

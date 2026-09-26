@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Blog — Kedaipal</title>
+  <meta name="description" content="Guides and updates for sellers who run their business on WhatsApp." />
+  <meta name="theme-color" content="#0F172A" />
+  <link rel="icon" href="assets/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;800&family=Red+Hat+Text:ital,wght@0,400;0,500;0,600;1,400&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Main">
+      <a class="nav-logo" href="https://kedaipal.com" aria-label="Kedaipal home">
+        <img src="assets/logo.svg" alt="Kedaipal" />
+      </a>
+      <div class="nav-links">
+        <a href="https://kedaipal.com/#delivery">Delivery</a>
+        <a href="https://kedaipal.com/#payments">Payments</a>
+        <a href="https://kedaipal.com/pricing">Pricing</a>
+        <a href="index.html" aria-current="page">Blog</a>
+      </div>
+      <a class="btn btn-accent" href="https://kedaipal.com">Start free</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <span class="eyebrow">Kedaipal Blog</span>
+      <h1>Sell smarter on <span class="accent">WhatsApp.</span></h1>
+      <p>Practical guides and product updates for businesses across Malaysia &amp; Singapore.</p>
+
+      <div class="filters" id="filters" role="group" aria-label="Filter by category"></div>
+    </section>
+
+    <div class="container">
+      <!-- Filled from Sanity by the script below -->
+      <div id="featured"></div>
+
+      <div class="section-head" id="latest-head">
+        <h2>Latest articles</h2>
+      </div>
+
+      <div class="grid" id="posts">
+        <p class="empty" id="empty" hidden>No articles in this category yet. Check back soon.</p>
+      </div>
+
+      <!-- Newsletter CTA -->
+      <section class="cta">
+        <span class="eyebrow">Newsletter</span>
+        <h2>Tips for sellers, once a month.</h2>
+        <p>Short, practical ideas to help you sell more on WhatsApp. No spam, unsubscribe anytime.</p>
+        <form class="subscribe" id="subscribe">
+          <input id="email" type="email" aria-label="Email address" placeholder="you@yourshop.com" required />
+          <button class="btn btn-accent" type="submit">Subscribe</button>
+        </form>
+        <p class="subscribe-note" id="subscribe-note" aria-live="polite"></p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <img src="assets/logo-dark.svg" alt="Kedaipal" />
+          <p>The shopkeeper's buddy. Made in SEA.</p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><a href="https://kedaipal.com/#delivery">Delivery</a></li>
+              <li><a href="https://kedaipal.com/#payments">Payments</a></li>
+              <li><a href="https://kedaipal.com/pricing">Pricing</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Contact</h4>
+            <ul>
+              <li><a href="mailto:hello@kedaipal.com">hello@kedaipal.com</a></li>
+              <li><a href="https://kedaipal.com/#faq">FAQ</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">© <span id="year">2026</span> Kedaipal. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/demo-data.js"></script>
+  <script src="js/sanity.js"></script>
+  <script>
+    const { esc, formatDate, readTime, postUrl, cover, avatar, card } = Blog;
+    const filters = document.getElementById('filters');
+    const featuredEl = document.getElementById('featured');
+    const grid = document.getElementById('posts');
+    const empty = document.getElementById('empty');
+
+    function renderFeatured(post) {
+      if (!post) return '';
+      return `
+        <article class="featured" data-category="${esc(post.category?.slug)}">
+          <a href="${postUrl(post.slug)}" aria-hidden="true" tabindex="-1">${cover(post, { eager: true })}</a>
+          <div>
+            <div class="meta">
+              ${post.category ? `<span class="tag">${esc(post.category.title)}</span>` : ''}
+              <span>${readTime(post.chars)}</span>
+            </div>
+            <a href="${postUrl(post.slug)}"><h2>${esc(post.title)}</h2></a>
+            ${post.excerpt ? `<p>${esc(post.excerpt)}</p>` : ''}
+            <div class="author">
+              ${avatar(post.author)}
+              <div>
+                <strong>${esc(post.author?.name || 'Kedaipal Team')}</strong>
+                <span>${formatDate(post.publishedAt)}</span>
+              </div>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    // Category filter
+    function applyFilter(f) {
+      filters.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.filter === f));
+      let shown = 0;
+      document.querySelectorAll('.featured, #posts .card').forEach(el => {
+        const match = f === 'all' || el.dataset.category === f;
+        el.hidden = !match;
+        if (match) shown++;
+      });
+      empty.hidden = shown > 0;
+    }
+
+    Blog.getIndex().then(({ categories, posts }) => {
+      filters.innerHTML = [{ title: 'All', slug: 'all' }, ...categories]
+        .map(c => `<button class="chip" aria-pressed="false" data-filter="${esc(c.slug)}">${esc(c.title)}</button>`)
+        .join('');
+      filters.addEventListener('click', e => {
+        const chip = e.target.closest('.chip');
+        if (chip) applyFilter(chip.dataset.filter);
+      });
+
+      const featured = posts.find(p => p.featured) || posts[0];
+      featuredEl.innerHTML = renderFeatured(featured);
+      grid.insertAdjacentHTML('afterbegin', posts.filter(p => p !== featured).map(p => card(p)).join(''));
+      applyFilter('all');
+    }).catch(err => {
+      console.error(err);
+      empty.textContent = "Articles couldn't be loaded right now. Please try again shortly.";
+      empty.hidden = false;
+    });
+
+    // Newsletter (hook up to your email provider)
+    document.getElementById('subscribe').addEventListener('submit', e => {
+      e.preventDefault();
+      document.getElementById('subscribe-note').textContent = "Thanks! You're on the list.";
+      e.target.reset();
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
