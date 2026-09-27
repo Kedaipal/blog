@@ -51,6 +51,10 @@ The blog is a **Cloudflare Worker serving static assets**, live at
 <https://blog.kedaipal.com>. Every push to `main` triggers a Cloudflare Workers
 Build, which runs `npm run build` and deploys `dist/`.
 
+The custom domain is declared in `wrangler.jsonc` (`routes` with
+`custom_domain: true`), so deploying creates the hostname binding and its DNS
+record — there is nothing to click in the dashboard to keep it working.
+
 | Piece | Where it lives | How it ships |
 |---|---|---|
 | The website | this repo | push to `main` → Cloudflare Workers Builds |
