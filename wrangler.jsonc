@@ -1,0 +1,26 @@
+{
+  // Static-assets Worker for the blog. There is no server code: the pages are
+  // plain HTML and the posts are fetched from Sanity in the browser, so this
+  // Worker only serves files out of dist/.
+  //
+  // Deploys automatically via Cloudflare Workers Builds on every push to main
+  // (Cloudflare dashboard -> Workers -> kedaipal-blog -> Settings -> Builds).
+  // `npx wrangler deploy` from a clean checkout does the same thing by hand.
+  "name": "kedaipal-blog",
+  "account_id": "8eb311132741dadfcd1fef79b8b7c1df",
+  // Same date as the main kedaipal Worker. This Worker runs no server
+  // code (assets only), so the date has no functional effect — it is pinned
+  // for consistency and to stay within what the pinned Wrangler supports.
+  "compatibility_date": "2025-09-02",
+  // Binds https://blog.kedaipal.com to this Worker and creates the DNS record.
+  // Declared here rather than clicked in the dashboard so the domain is part of
+  // the repo: a fresh deploy reproduces it, and the mapping is reviewable. The
+  // kedaipal.com zone is already on this Cloudflare account, so Wrangler can
+  // create the record itself.
+  "routes": [{"pattern": "blog.kedaipal.com", "custom_domain": true}],
+  "assets": {
+    // Built by `npm run build` (see build.mjs) — NOT the repo root, so the
+    // Sanity Studio source never gets published to the public site.
+    "directory": "./dist"
+  }
+}
