@@ -45,14 +45,42 @@ In the Studio, open **Posts → +** and work down the form:
 Click **Publish**. Drafts never appear on the site. New posts show within about a minute.
 Categories (and their order in the filter bar) are edited under **Categories**.
 
-## Going live
+## Deployment
 
-1. **Deploy the Studio** so the client can edit from anywhere:
-   `cd studio && npm run deploy`, which publishes to https://kedaipal-blog.sanity.studio
-2. **Invite editors:** sanity.io/manage → project → Members → Invite
-3. **Host the blog:** upload everything except `studio/` to the web host.
-   If it's served from a domain other than kedaipal.com / www.kedaipal.com, add it:
-   `cd studio && npx sanity cors add https://your-domain.com --no-credentials`
+The blog is a **Cloudflare Worker serving static assets**, live at
+<https://blog.kedaipal.com>. Every push to `main` triggers a Cloudflare Workers
+Build, which runs `npm run build` and deploys `dist/`.
+
+| Piece | Where it lives | How it ships |
+|---|---|---|
+| The website | this repo | push to `main` → Cloudflare Workers Builds |
+| The posts | Sanity project `cvycqoxz` | published in the Studio; live within ~a minute |
+| The Studio | `studio/` in this repo | `cd studio && npm run deploy` → <https://kedaipal-blog.sanity.studio> |
+
+`npm run build` copies **only** the public site into `dist/` — `studio/` is never
+published. It is an allow-list; see the comment at the top of `build.mjs` before
+adding a new top-level folder.
+
+To deploy by hand from a clean checkout: `npm run deploy`.
+
+### Sanity CORS — required, or the blog shows no posts
+
+Posts are fetched from Sanity **in the browser**, so Sanity must allow the exact
+origin serving the page. An origin that is not on the list gets a `403` and the
+blog renders its shell with zero articles. Currently allowed: `kedaipal.com`,
+`www.kedaipal.com`, `localhost:3000`, `localhost:3333`.
+
+Adding an origin needs access to the Sanity project:
+
+```bash
+cd studio && npx sanity cors add https://blog.kedaipal.com --no-credentials
+```
+
+Or via <https://www.sanity.io/manage/project/cvycqoxz> → API → CORS origins.
+
+### Inviting editors
+
+sanity.io/manage → project → Members → Invite.
 
 ## Notes
 
