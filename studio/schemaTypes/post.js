@@ -1,6 +1,26 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {DocumentTextIcon} from '@sanity/icons/DocumentText'
 import {BulbOutlineIcon} from '@sanity/icons/BulbOutline'
+import {PlayIcon} from '@sanity/icons/Play'
+
+// Image upload with alt text, grouped under "Images" in the form
+const imageField = ({name, title, description}) =>
+  defineField({
+    name,
+    title,
+    type: 'image',
+    fieldset: 'images',
+    description,
+    options: {hotspot: true},
+    fields: [
+      defineField({
+        name: 'alt',
+        title: 'Alt text',
+        type: 'string',
+        description: 'Describe the image for screen readers and Google.',
+      }),
+    ],
+  })
 
 export default defineType({
   name: 'post',
@@ -9,9 +29,14 @@ export default defineType({
   icon: DocumentTextIcon,
   fieldsets: [
     {
+      name: 'images',
+      title: 'Images',
+      description: 'Click the crop icon on each image to set the hotspot, so the subject stays in view when cropped.',
+    },
+    {
       name: 'noImage',
       title: 'Cover when there is no image',
-      description: 'Only used if no cover image is uploaded above.',
+      description: 'Only used if no images are uploaded above.',
       options: {collapsible: true, collapsed: true},
     },
   ],
@@ -26,22 +51,30 @@ export default defineType({
       type: 'slug',
       description: 'The web address of the post. Click "Generate".',
       options: {source: 'title', maxLength: 96},
-      validation: (r) => r.required(),
+      validation: (r) =>
+        r.required().custom((slug) =>
+          !slug?.current || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.current)
+            ? true
+            : 'Use only lowercase letters, numbers and single hyphens, with no spaces (e.g. "sue-chef-kitchen"). Click "Generate" to fix it.',
+        ),
     }),
-    defineField({
+    imageField({
       name: 'mainImage',
-      title: 'Cover image',
-      type: 'image',
-      description: 'Upload 1800 × 771 px (at least 1200 × 750). JPG or WebP under 200 KB. Click the crop icon to set the hotspot so the subject stays in view on cards.',
-      options: {hotspot: true},
-      fields: [
-        defineField({
-          name: 'alt',
-          title: 'Alt text',
-          type: 'string',
-          description: 'Describe the image for screen readers and Google.',
-        }),
-      ],
+      title: 'Card image',
+      description:
+        'Shown on the blog home (cards and the large featured slot). Upload 1200 × 750 px (16:10). Also used as the phone banner if none is uploaded below.',
+    }),
+    imageField({
+      name: 'articleImage',
+      title: 'Article banner – desktop',
+      description:
+        'The wide banner at the top of the article on computers and tablets. Upload 1800 × 771 px (21:9). If empty, the card image is used.',
+    }),
+    imageField({
+      name: 'articleImageMobile',
+      title: 'Article banner – phone',
+      description:
+        'The banner at the top of the article on phones. Upload 1200 × 750 px (16:10, same shape as the cards). If empty, the card image is used.',
     }),
     defineField({
       name: 'excerpt',
@@ -112,6 +145,39 @@ export default defineType({
             defineField({name: 'text', type: 'text', rows: 3, validation: (r) => r.required()}),
           ],
           preview: {select: {title: 'label', subtitle: 'text'}},
+        }),
+        defineArrayMember({
+          name: 'audio',
+          title: 'Audio',
+          type: 'object',
+          icon: PlayIcon,
+          fields: [
+            defineField({
+              name: 'file',
+              title: 'Audio file',
+              type: 'file',
+              description: 'MP3 (128 kbps) or M4A. Keep clips under about 15 minutes; use a podcast host for full episodes.',
+              options: {accept: 'audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a'},
+              validation: (r) => r.required(),
+            }),
+            defineField({
+              name: 'title',
+              type: 'string',
+              description: 'e.g. "Listen: Sue on starting her kitchen"',
+              validation: (r) => r.required(),
+            }),
+            defineField({
+              name: 'caption',
+              title: 'Caption or transcript',
+              type: 'text',
+              rows: 4,
+              description: 'Optional. Long text (a transcript) is shown behind a "Read transcript" toggle.',
+            }),
+          ],
+          preview: {
+            select: {title: 'title', filename: 'file.asset.originalFilename'},
+            prepare: ({title, filename}) => ({title: title || 'Audio', subtitle: filename, media: PlayIcon}),
+          },
         }),
         defineArrayMember({
           name: 'divider',

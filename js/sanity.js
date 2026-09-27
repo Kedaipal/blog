@@ -50,7 +50,9 @@ window.Blog = (function () {
       const r = await query(`{
         "post": *[_type == "post" && slug.current == $slug][0]{
           ${CARD},
-          body[]{..., _type == "image" => ${IMAGE.slice(0, -1)}, caption}}
+          articleImage${IMAGE},
+          articleImageMobile${IMAGE},
+          body[]{..., _type == "image" => ${IMAGE.slice(0, -1)}, caption}, _type == "audio" => {"src": file.asset->url}}
         },
         "others": *[_type == "post" && slug.current != $slug && publishedAt <= now()] | order(publishedAt desc)[0...12]{${CARD}}
       }`, { slug });
@@ -112,15 +114,35 @@ window.Blog = (function () {
       + ` ${h ? `width="${w}" height="${h}"` : ''} loading="${eager ? 'eager' : 'lazy'}" decoding="async" />`;
   }
 
-  // Cover image, or the branded colour block when no image is uploaded.
-  // Sizes follow the layout: 16:10 cards (600×375 @1x), 21:9 article banner (900×386 @1x).
-  function cover(post, { wide = false, eager = false } = {}) {
-    const [w, h] = wide ? [900, 386] : [600, 375];
-    if (post.mainImage?.asset) {
-      return `<div class="cover">${imgTag(post.mainImage, w, h, { alt: post.title, eager })}</div>`;
-    }
+  // Branded colour block, used when a post has no images
+  function placeholder(post) {
     const style = { light: ' cover--light', green: ' cover--green' }[post.coverStyle] || '';
     return `<div class="cover${style}"><span class="cover-mark">${esc(post.coverText || post.title)}</span></div>`;
+  }
+
+  const has = img => Boolean(img?.asset);
+
+  // Card image: 16:10 on the blog home and in "Keep reading" (600×375 @1x)
+  function cover(post, { eager = false } = {}) {
+    if (!has(post.mainImage)) return placeholder(post);
+    return `<div class="cover">${imgTag(post.mainImage, 600, 375, { alt: post.title, eager })}</div>`;
+  }
+
+  // Article banner: 21:9 on desktop/tablet (900×386 @1x), 16:10 on phones (600×375 @1x).
+  // Each falls back to the card image, so one upload is still enough.
+  function articleCover(post) {
+    const desktop = [post.articleImage, post.mainImage, post.articleImageMobile].find(has);
+    const phone = [post.articleImageMobile, post.mainImage, post.articleImage].find(has);
+    if (!desktop) return placeholder(post);
+    const src = (img, w, h) => `${esc(imageUrl(img, w, h))} 1x, ${esc(imageUrl(img, w * 2, h * 2))} 2x`;
+    const alt = desktop.alt || post.title;
+    return `
+      <div class="cover">
+        <picture>
+          <source media="(max-width: 767px)" srcset="${src(phone, 600, 375)}" />
+          <img src="${esc(imageUrl(desktop, 900, 386))}" srcset="${src(desktop, 900, 386)}" alt="${esc(alt)}" fetchpriority="high" decoding="async" />
+        </picture>
+      </div>`;
   }
 
   function avatar(author) {
@@ -136,6 +158,65 @@ window.Blog = (function () {
         <h3>${esc(post.title)}</h3>
         ${excerpt && post.excerpt ? `<p>${esc(post.excerpt)}</p>` : ''}
       </a>`;
+  }
+
+  // ---------- Audio player ----------
+
+  const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+
+  function audioPlayer(b) {
+    const caption = b.caption?.trim();
+    const long = caption && caption.length > 240;
+    return `
+      <figure class="audio">
+        <button class="audio-play" type="button" aria-label="Play: ${esc(b.title)}">${ICON_PLAY}</button>
+        <div class="audio-body">
+          <strong class="audio-title">${esc(b.title)}</strong>
+          <div class="audio-row">
+            <input class="audio-seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek" />
+            <span class="audio-time">0:00</span>
+          </div>
+        </div>
+        <audio preload="metadata" src="${esc(b.src)}"></audio>
+        ${caption ? (long
+          ? `<details class="audio-transcript"><summary>Read transcript</summary><p>${esc(caption).replace(/\n/g, '<br />')}</p></details>`
+          : `<figcaption>${esc(caption)}</figcaption>`) : ''}
+      </figure>`;
+  }
+
+  const clock = t => (isFinite(t) ? `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}` : '0:00');
+
+  // Wires up every player inside `root`. Only one plays at a time.
+  function initAudio(root = document) {
+    const players = [...root.querySelectorAll('.audio')];
+    players.forEach(fig => {
+      const audio = fig.querySelector('audio');
+      const btn = fig.querySelector('.audio-play');
+      const seek = fig.querySelector('.audio-seek');
+      const time = fig.querySelector('.audio-time');
+      const title = fig.querySelector('.audio-title').textContent;
+      const paint = () => {
+        const p = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+        seek.value = p;
+        seek.style.setProperty('--p', p + '%');
+        time.textContent = audio.currentTime > 0 ? `${clock(audio.currentTime)} / ${clock(audio.duration)}` : clock(audio.duration);
+      };
+      btn.addEventListener('click', () => {
+        if (audio.paused) {
+          players.forEach(other => other !== fig && other.querySelector('audio').pause());
+          audio.play();
+        } else audio.pause();
+      });
+      audio.addEventListener('play', () => { btn.innerHTML = ICON_PAUSE; btn.setAttribute('aria-label', `Pause: ${title}`); fig.classList.add('is-playing'); });
+      audio.addEventListener('pause', () => { btn.innerHTML = ICON_PLAY; btn.setAttribute('aria-label', `Play: ${title}`); fig.classList.remove('is-playing'); });
+      audio.addEventListener('ended', () => { audio.currentTime = 0; paint(); });
+      ['loadedmetadata', 'timeupdate', 'durationchange'].forEach(ev => audio.addEventListener(ev, paint));
+      seek.addEventListener('input', () => {
+        if (audio.duration) audio.currentTime = (seek.value / 100) * audio.duration;
+        paint();
+      });
+    });
   }
 
   // ---------- Portable Text → HTML ----------
@@ -182,11 +263,13 @@ window.Blog = (function () {
         out += `<div class="callout">${b.label ? `<strong>${esc(b.label)}:</strong> ` : ''}${esc(b.text)}</div>`;
       } else if (b._type === 'divider') {
         out += '<hr />';
+      } else if (b._type === 'audio' && b.src) {
+        out += audioPlayer(b);
       }
     }
     closeList();
     return out;
   }
 
-  return { live, getIndex, getPost, esc, formatDate, readTime, postUrl, cover, avatar, card, portableText };
+  return { live, getIndex, getPost, esc, formatDate, readTime, postUrl, cover, articleCover, avatar, card, portableText, initAudio };
 })();

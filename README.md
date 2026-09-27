@@ -32,10 +32,14 @@ npm run dev                        # then open http://localhost:3333
 In the Studio, open **Posts → +** and work down the form:
 
 - **Title**, then click **Generate** for the slug
-- **Cover image:** drag an image in, or click **Upload**. Use 1800 × 771 px (at least 1200 × 750), then click the crop icon to set the hotspot
+- **Images** (each has a crop icon for setting the hotspot):
+  - **Card image**, 1200 × 750 px (16:10): blog home cards and featured slot
+  - **Article banner – desktop**, 1800 × 771 px (21:9): top of the article on computers and tablets
+  - **Article banner – phone**, 1200 × 750 px (16:10): top of the article on phones
+  - Only the card image is needed; the banners fall back to it when empty
 - **Summary, category, author, publish date**
 - **Feature on blog home:** puts the post in the large top slot (the newest ticked post wins)
-- **Body:** use the style menu for Heading, Subheading and Quote; the list buttons for bullets and numbers; and the **+** button to insert an **Image**, **Tip box** or **Divider**
+- **Body:** use the style menu for Heading, Subheading and Quote; the list buttons for bullets and numbers; and the **+** button to insert an **Image**, **Audio** (MP3/M4A, with an optional caption or transcript), **Tip box** or **Divider**
 - **Cover when there is no image** (collapsed): the text and colour of the branded block used when no cover is uploaded
 
 Click **Publish**. Drafts never appear on the site. New posts show within about a minute.
@@ -51,6 +55,8 @@ Categories (and their order in the filter bar) are edited under **Categories**.
    `cd studio && npx sanity cors add https://your-domain.com --no-credentials`
 
 ## Notes
+
+- After changing `styles.css` or anything in `js/`, bump the `?v=` number on those links in `index.html` and `post.html` (e.g. to today's date) so browsers download the new files instead of a cached copy.
 
 - Articles are rendered in the browser, so search engines that don't run JavaScript won't see post text.
   For strong SEO, a later step is to pre-render pages (e.g. with Astro or Next.js) using the same queries in `js/sanity.js`.
