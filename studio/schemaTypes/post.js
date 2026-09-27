@@ -2,6 +2,7 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
 import {DocumentTextIcon} from '@sanity/icons/DocumentText'
 import {BulbOutlineIcon} from '@sanity/icons/BulbOutline'
 import {PlayIcon} from '@sanity/icons/Play'
+import {CategorySelect} from './CategorySelect'
 
 // Image upload with alt text, grouped under "Images" in the form
 const imageField = ({name, title, description}) =>
@@ -88,6 +89,10 @@ export default defineType({
       name: 'category',
       type: 'reference',
       to: [{type: 'category'}],
+      description: 'Pick an existing category. New ones are added under Categories.',
+      // Pick-only dropdown: no "Create new" button in the post form
+      options: {disableNew: true},
+      components: {input: CategorySelect},
       validation: (r) => r.required(),
     }),
     defineField({name: 'author', type: 'reference', to: [{type: 'author'}]}),

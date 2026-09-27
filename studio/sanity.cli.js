@@ -7,4 +7,7 @@ export default defineCliConfig({
   },
   // Studio URL when deployed: https://kedaipal-blog.sanity.studio
   studioHost: 'kedaipal-blog',
+  deployment: {
+    appId: 'x79jk5pyg1xpkuuplx50rshe',
+  },
 })
