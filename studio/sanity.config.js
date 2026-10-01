@@ -10,7 +10,7 @@ export default defineConfig({
   name: 'default',
   title: 'Kedaipal Blog',
 
-  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'cvycqoxz',
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'opzqnhfl',
   dataset: process.env.SANITY_STUDIO_DATASET || 'production',
 
   plugins: [

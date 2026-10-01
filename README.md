@@ -2,8 +2,11 @@
 
 A static blog (HTML/CSS/JS) styled like kedaipal.com. Posts are managed in Sanity.
 
-- **Sanity project:** `cvycqoxz`, dataset `production` (public read), owned by kristoferkedai@gmail.com
-- **Manage:** https://www.sanity.io/manage/project/cvycqoxz
+- **Sanity project:** `opzqnhfl`, dataset `production` (public read), owned by the Kedaipal work account
+- **Manage:** https://www.sanity.io/manage/project/opzqnhfl
+- **Previous project:** `cvycqoxz` (Kris's personal account). Kept read-only as the
+  source of truth for anything not yet copied across — do not delete it until
+  every post is confirmed present in `opzqnhfl`.
 
 ## Folders
 
@@ -58,7 +61,7 @@ record — there is nothing to click in the dashboard to keep it working.
 | Piece | Where it lives | How it ships |
 |---|---|---|
 | The website | this repo | push to `main` → Cloudflare Workers Builds |
-| The posts | Sanity project `cvycqoxz` | published in the Studio; live within ~a minute |
+| The posts | Sanity project `opzqnhfl` | published in the Studio; live within ~a minute |
 | The Studio | `studio/` in this repo | `cd studio && npm run deploy` → <https://kedaipal-blog.sanity.studio> |
 
 `npm run build` copies **only** the public site into `dist/` — `studio/` is never
@@ -71,8 +74,11 @@ To deploy by hand from a clean checkout: `npm run deploy`.
 
 Posts are fetched from Sanity **in the browser**, so Sanity must allow the exact
 origin serving the page. An origin that is not on the list gets a `403` and the
-blog renders its shell with zero articles. Currently allowed: `kedaipal.com`,
-`www.kedaipal.com`, `localhost:3000`, `localhost:3333`.
+blog renders its shell with zero articles.
+
+⚠️ Project `opzqnhfl` currently has **no CORS origins configured at all** — every
+origin gets a 403. At minimum `https://blog.kedaipal.com` and `http://localhost:3000`
+must be added before the blog can render anything.
 
 Adding an origin needs access to the Sanity project:
 
@@ -80,7 +86,7 @@ Adding an origin needs access to the Sanity project:
 cd studio && npx sanity cors add https://blog.kedaipal.com --no-credentials
 ```
 
-Or via <https://www.sanity.io/manage/project/cvycqoxz> → API → CORS origins.
+Or via <https://www.sanity.io/manage/project/opzqnhfl> → API → CORS origins.
 
 ### Inviting editors
 
